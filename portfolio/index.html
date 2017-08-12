@@ -17,7 +17,7 @@
  html, body, div{
  	background-color: Lavender;
  }
-div{
+#mainimage{
 	width: 150px;
 	margin: auto;
 	margin-top: 50px;
@@ -54,26 +54,25 @@ li a:hover:not(.active) {
 .active {
     background-color: #4CAF50;
 }
-#sobre{
-	background-color: LightBlue;
-	margin: 0;
-    padding: 0;
-	width:100%;
-	height:100vh;
+
+.w3-panel{
+	background-color:White;
+	height:25vh;
+	width: 30%;
+	margin:1%;
 }
-#contato{
-	background-color: LightCoral;
-	margin: 0;
-    padding: 0;
-	width:100%;
-	height:100vh;
+.row-padding{
+     width: 90%;
+	 margin:0 auto;
 }
+
+
  </style>
  <title>Fernanda</title>
  </head>
  <body>
 
-<div><img class="smaller-image" src="https://pbs.twimg.com/profile_images/673860471859097601/IpoOec5o.jpg"></div>
+<div id="mainimage"><img class="smaller-image" src="https://pbs.twimg.com/profile_images/673860471859097601/IpoOec5o.jpg"></div>
  <h1 class="text-center">Fernanda Monteiro</h1>
  <ul>
   <li class="navi"><a href="http://feemonteiro.github.io/">Home</a></li>
@@ -81,13 +80,21 @@ li a:hover:not(.active) {
   <li class="navi"><a href="#contato">Contato</a></li>
   <li class="navi"><a href="#sobre">Sobre</a></li>
 </ul>
-<div id="sobre">
-<a name="sobre"></a>
-<p>Computer Engineering Student</p>
+
+
+<div class="row-padding">
+<a href="http://feemonteiro.github.io/portfolio/pdi">
+  <div class="w3-panel w3-round-xlarge w3-third">
+    <h2>Processamento<br>Digital<br>de<br>Imagens</h2>
+  </div></a>
+  <div class="w3-panel w3-round-xlarge w3-third">
+    <h2>Em breve</h2>
+  </div>
+  <div class="w3-panel w3-round-xlarge w3-third">
+    <h2>Em breve</h2>
+  </div>
 </div>
-<div id="contato">
-<a name="contato"></a>
-<p>@feeerh on Twitter</p>
-</div>
+
+
 </body>
 </html>
