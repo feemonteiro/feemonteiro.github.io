@@ -1163,14 +1163,109 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div class="sect2">
 <h3 id="_vídeo_com_efeito_tilt_shift_e_stop_motion">5.2. Vídeo com efeito Tilt Shift e Stop Motion</h3>
+<div class="listingblock">
+<div class="title">tilt-video.cpp</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="cpp"><span></span><span class="tok-cp">#include</span> <span class="tok-cpf">&lt;iostream&gt;</span><span class="tok-cp"></span>
+<span class="tok-cp">#include</span> <span class="tok-cpf">&lt;opencv2/opencv.hpp&gt;</span><span class="tok-cp"></span>
 
+<span class="tok-k">using</span> <span class="tok-k">namespace</span> <span class="tok-n">cv</span><span class="tok-p">;</span>
+<span class="tok-k">using</span> <span class="tok-k">namespace</span> <span class="tok-n">std</span><span class="tok-p">;</span>
+
+<span class="tok-n">Mat</span> <span class="tok-n">alpha_mat</span><span class="tok-p">,</span> <span class="tok-n">alpha_complement</span><span class="tok-p">;</span>
+<span class="tok-kt">double</span> <span class="tok-n">alpha</span><span class="tok-p">,</span> <span class="tok-n">center</span><span class="tok-p">,</span> <span class="tok-n">focus</span><span class="tok-p">,</span> <span class="tok-n">_decay</span><span class="tok-p">;</span>
+<span class="tok-n">Mat</span> <span class="tok-n">image1</span><span class="tok-p">,</span> <span class="tok-n">image2</span><span class="tok-p">,</span> <span class="tok-n">blended</span><span class="tok-p">,</span> <span class="tok-n">mod1</span><span class="tok-p">,</span> <span class="tok-n">mod2</span><span class="tok-p">;</span>
+<span class="tok-n">Mat</span> <span class="tok-n">imageTop</span><span class="tok-p">;</span>
+
+<span class="tok-c1">// do all the tilt-shifting stuff</span>
+<span class="tok-kt">void</span> <span class="tok-nf">DoAllTheStuff</span><span class="tok-p">()</span> <span class="tok-p">{</span>
+	<span class="tok-n">alpha_mat</span> <span class="tok-o">=</span> <span class="tok-n">Mat</span><span class="tok-o">::</span><span class="tok-n">zeros</span><span class="tok-p">(</span><span class="tok-n">image1</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">,</span> <span class="tok-n">image1</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">,</span> <span class="tok-n">CV_32F</span><span class="tok-p">);</span>
+	<span class="tok-n">alpha_complement</span> <span class="tok-o">=</span> <span class="tok-n">Mat</span><span class="tok-o">::</span><span class="tok-n">zeros</span><span class="tok-p">(</span><span class="tok-n">image1</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">,</span> <span class="tok-n">image1</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">,</span> <span class="tok-n">CV_32F</span><span class="tok-p">);</span>
+
+	<span class="tok-k">for</span> <span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span> <span class="tok-o">=</span> <span class="tok-mi">0</span><span class="tok-p">;</span> <span class="tok-n">i</span> <span class="tok-o">&lt;</span> <span class="tok-n">image1</span><span class="tok-p">.</span><span class="tok-n">rows</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+		<span class="tok-n">alpha</span> <span class="tok-o">=</span> <span class="tok-p">(</span><span class="tok-n">tanh</span><span class="tok-p">((</span><span class="tok-n">i</span> <span class="tok-o">+</span> <span class="tok-p">(</span><span class="tok-n">center</span> <span class="tok-o">/</span> <span class="tok-mi">2</span><span class="tok-p">)</span> <span class="tok-o">-</span> <span class="tok-n">focus</span><span class="tok-p">)</span> <span class="tok-o">/</span> <span class="tok-n">_decay</span><span class="tok-p">)</span> <span class="tok-o">-</span> <span class="tok-n">tanh</span><span class="tok-p">((</span><span class="tok-n">i</span> <span class="tok-o">-</span> <span class="tok-p">(</span><span class="tok-n">center</span> <span class="tok-o">/</span> <span class="tok-mi">2</span><span class="tok-p">)</span> <span class="tok-o">-</span> <span class="tok-n">focus</span><span class="tok-p">)</span> <span class="tok-o">/</span> <span class="tok-n">_decay</span><span class="tok-p">))</span> <span class="tok-o">/</span> <span class="tok-mi">2</span><span class="tok-p">;</span>
+		<span class="tok-k">for</span> <span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">j</span> <span class="tok-o">=</span> <span class="tok-mi">0</span><span class="tok-p">;</span> <span class="tok-n">j</span> <span class="tok-o">&lt;</span> <span class="tok-n">image1</span><span class="tok-p">.</span><span class="tok-n">cols</span><span class="tok-p">;</span> <span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+			<span class="tok-n">alpha_mat</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-kt">float</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span> <span class="tok-n">j</span><span class="tok-p">)</span> <span class="tok-o">=</span> <span class="tok-n">alpha</span><span class="tok-p">;</span>
+			<span class="tok-n">alpha_complement</span><span class="tok-p">.</span><span class="tok-n">at</span><span class="tok-o">&lt;</span><span class="tok-kt">float</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">,</span> <span class="tok-n">j</span><span class="tok-p">)</span> <span class="tok-o">=</span> <span class="tok-mi">1</span> <span class="tok-o">-</span> <span class="tok-n">alpha</span><span class="tok-p">;</span>
+		<span class="tok-p">}</span>
+	<span class="tok-p">}</span>
+	<span class="tok-n">Mat</span> <span class="tok-n">miracle_maker1</span><span class="tok-p">[]</span> <span class="tok-o">=</span> <span class="tok-p">{</span> <span class="tok-n">alpha_mat</span><span class="tok-p">,</span> <span class="tok-n">alpha_mat</span><span class="tok-p">,</span> <span class="tok-n">alpha_mat</span> <span class="tok-p">};</span>
+	<span class="tok-n">merge</span><span class="tok-p">(</span><span class="tok-n">miracle_maker1</span><span class="tok-p">,</span> <span class="tok-mi">3</span><span class="tok-p">,</span> <span class="tok-n">alpha_mat</span><span class="tok-p">);</span>
+	<span class="tok-n">Mat</span> <span class="tok-n">miracle_maker2</span><span class="tok-p">[]</span> <span class="tok-o">=</span> <span class="tok-p">{</span> <span class="tok-n">alpha_complement</span><span class="tok-p">,</span> <span class="tok-n">alpha_complement</span><span class="tok-p">,</span> <span class="tok-n">alpha_complement</span> <span class="tok-p">};</span>
+	<span class="tok-n">merge</span><span class="tok-p">(</span><span class="tok-n">miracle_maker2</span><span class="tok-p">,</span> <span class="tok-mi">3</span><span class="tok-p">,</span> <span class="tok-n">alpha_complement</span><span class="tok-p">);</span>
+
+	<span class="tok-n">image1</span><span class="tok-p">.</span><span class="tok-n">convertTo</span><span class="tok-p">(</span><span class="tok-n">mod1</span><span class="tok-p">,</span> <span class="tok-n">CV_32FC3</span><span class="tok-p">);</span>
+	<span class="tok-n">image2</span><span class="tok-p">.</span><span class="tok-n">convertTo</span><span class="tok-p">(</span><span class="tok-n">mod2</span><span class="tok-p">,</span> <span class="tok-n">CV_32FC3</span><span class="tok-p">);</span>
+
+	<span class="tok-n">multiply</span><span class="tok-p">(</span><span class="tok-n">mod1</span><span class="tok-p">,</span> <span class="tok-n">alpha_mat</span><span class="tok-p">,</span> <span class="tok-n">mod1</span><span class="tok-p">);</span>
+	<span class="tok-n">multiply</span><span class="tok-p">(</span><span class="tok-n">mod2</span><span class="tok-p">,</span> <span class="tok-n">alpha_complement</span><span class="tok-p">,</span> <span class="tok-n">mod2</span><span class="tok-p">);</span>
+	<span class="tok-n">add</span><span class="tok-p">(</span><span class="tok-n">mod1</span><span class="tok-p">,</span> <span class="tok-n">mod2</span><span class="tok-p">,</span> <span class="tok-n">blended</span><span class="tok-p">);</span>
+	<span class="tok-n">blended</span><span class="tok-p">.</span><span class="tok-n">convertTo</span><span class="tok-p">(</span><span class="tok-n">blended</span><span class="tok-p">,</span> <span class="tok-n">CV_8UC3</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+<span class="tok-c1">// median filter</span>
+<span class="tok-kt">float</span> <span class="tok-n">kernel2d</span><span class="tok-p">[]</span> <span class="tok-o">=</span> <span class="tok-p">{</span> <span class="tok-mf">.111</span><span class="tok-p">,</span><span class="tok-mf">.111</span><span class="tok-p">,</span><span class="tok-mf">.111</span><span class="tok-p">,</span>
+<span class="tok-mf">.111</span><span class="tok-p">,</span><span class="tok-mf">.111</span><span class="tok-p">,</span><span class="tok-mf">.111</span><span class="tok-p">,</span>
+<span class="tok-mf">.111</span><span class="tok-p">,</span><span class="tok-mf">.111</span><span class="tok-p">,</span><span class="tok-mf">.111</span> <span class="tok-p">};</span>
+
+<span class="tok-kt">int</span> <span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">argc</span><span class="tok-p">,</span> <span class="tok-kt">char</span><span class="tok-o">**</span> <span class="tok-n">argv</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+	<span class="tok-n">Mat</span> <span class="tok-n">mask</span><span class="tok-p">(</span><span class="tok-mi">3</span><span class="tok-p">,</span> <span class="tok-mi">3</span><span class="tok-p">,</span> <span class="tok-n">CV_32F</span><span class="tok-p">);</span>
+	<span class="tok-n">mask</span> <span class="tok-o">=</span> <span class="tok-n">Mat</span><span class="tok-p">(</span><span class="tok-mi">3</span><span class="tok-p">,</span> <span class="tok-mi">3</span><span class="tok-p">,</span> <span class="tok-n">CV_32F</span><span class="tok-p">,</span> <span class="tok-n">kernel2d</span><span class="tok-p">);</span>
+	<span class="tok-n">image2</span><span class="tok-p">.</span><span class="tok-n">copyTo</span><span class="tok-p">(</span><span class="tok-n">imageTop</span><span class="tok-p">);</span>
+	<span class="tok-kt">int</span> <span class="tok-n">width</span><span class="tok-p">,</span> <span class="tok-n">height</span><span class="tok-p">;</span>
+	<span class="tok-n">VideoCapture</span> <span class="tok-n">cap</span><span class="tok-p">;</span>
+	<span class="tok-n">cout</span> <span class="tok-o">&lt;&lt;</span> <span class="tok-n">cap</span><span class="tok-p">.</span><span class="tok-n">get</span><span class="tok-p">(</span><span class="tok-n">CV_CAP_PROP_FOURCC</span><span class="tok-p">)</span> <span class="tok-o">&lt;&lt;</span> <span class="tok-n">endl</span><span class="tok-p">;</span>
+	<span class="tok-n">cap</span><span class="tok-p">.</span><span class="tok-n">set</span><span class="tok-p">(</span><span class="tok-n">CV_CAP_PROP_FOURCC</span><span class="tok-p">,</span> <span class="tok-n">CV_FOURCC</span><span class="tok-p">(</span><span class="tok-sc">&#39;P&#39;</span><span class="tok-p">,</span> <span class="tok-sc">&#39;I&#39;</span><span class="tok-p">,</span> <span class="tok-sc">&#39;M&#39;</span><span class="tok-p">,</span> <span class="tok-sc">&#39;1&#39;</span><span class="tok-p">));</span>
+
+	<span class="tok-n">cap</span><span class="tok-p">.</span><span class="tok-n">open</span><span class="tok-p">(</span><span class="tok-s">&quot;anteseng.avi&quot;</span><span class="tok-p">);</span>
+
+	<span class="tok-k">if</span> <span class="tok-p">(</span><span class="tok-o">!</span><span class="tok-n">cap</span><span class="tok-p">.</span><span class="tok-n">isOpened</span><span class="tok-p">())</span> <span class="tok-p">{</span>
+		<span class="tok-n">cout</span> <span class="tok-o">&lt;&lt;</span> <span class="tok-s">&quot;cameras indisponiveis&quot;</span><span class="tok-p">;</span>
+		<span class="tok-k">return</span> <span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">;</span>
+	<span class="tok-p">}</span>
+
+	<span class="tok-kt">int</span> <span class="tok-n">count</span> <span class="tok-o">=</span> <span class="tok-n">cap</span><span class="tok-p">.</span><span class="tok-n">get</span><span class="tok-p">(</span><span class="tok-n">CV_CAP_PROP_FRAME_COUNT</span><span class="tok-p">);</span>
+	<span class="tok-n">width</span> <span class="tok-o">=</span> <span class="tok-n">cap</span><span class="tok-p">.</span><span class="tok-n">get</span><span class="tok-p">(</span><span class="tok-n">CV_CAP_PROP_FRAME_WIDTH</span><span class="tok-p">);</span>
+	<span class="tok-n">height</span> <span class="tok-o">=</span> <span class="tok-n">cap</span><span class="tok-p">.</span><span class="tok-n">get</span><span class="tok-p">(</span><span class="tok-n">CV_CAP_PROP_FRAME_HEIGHT</span><span class="tok-p">);</span>
+	<span class="tok-n">Size</span> <span class="tok-n">framesize</span><span class="tok-p">(</span><span class="tok-n">width</span><span class="tok-p">,</span> <span class="tok-n">height</span><span class="tok-p">);</span>
+
+	<span class="tok-n">center</span> <span class="tok-o">=</span> <span class="tok-p">(</span><span class="tok-kt">double</span><span class="tok-p">)</span><span class="tok-n">height</span><span class="tok-o">*</span><span class="tok-mf">0.2</span><span class="tok-p">;</span>
+	<span class="tok-n">focus</span> <span class="tok-o">=</span> <span class="tok-p">(</span><span class="tok-kt">double</span><span class="tok-p">)</span><span class="tok-n">height</span><span class="tok-o">*</span><span class="tok-mf">0.5</span><span class="tok-p">;</span>
+	<span class="tok-n">_decay</span> <span class="tok-o">=</span> <span class="tok-p">(</span><span class="tok-kt">double</span><span class="tok-p">)</span><span class="tok-n">height</span><span class="tok-o">*</span><span class="tok-mf">0.01</span><span class="tok-p">;</span>
+
+	<span class="tok-n">VideoWriter</span> <span class="tok-n">out</span><span class="tok-p">(</span><span class="tok-s">&quot;depois_nai.avi&quot;</span><span class="tok-p">,</span> <span class="tok-n">CV_FOURCC</span><span class="tok-p">(</span><span class="tok-sc">&#39;P&#39;</span><span class="tok-p">,</span> <span class="tok-sc">&#39;I&#39;</span><span class="tok-p">,</span> <span class="tok-sc">&#39;M&#39;</span><span class="tok-p">,</span> <span class="tok-sc">&#39;1&#39;</span><span class="tok-p">),</span> <span class="tok-mi">20</span><span class="tok-p">,</span> <span class="tok-n">framesize</span><span class="tok-p">,</span> <span class="tok-nb">true</span><span class="tok-p">);</span>
+
+	<span class="tok-n">cout</span> <span class="tok-o">&lt;&lt;</span> <span class="tok-s">&quot;largura = &quot;</span> <span class="tok-o">&lt;&lt;</span> <span class="tok-n">width</span> <span class="tok-o">&lt;&lt;</span> <span class="tok-n">endl</span><span class="tok-p">;</span>
+	<span class="tok-n">cout</span> <span class="tok-o">&lt;&lt;</span> <span class="tok-s">&quot;altura  = &quot;</span> <span class="tok-o">&lt;&lt;</span> <span class="tok-n">height</span> <span class="tok-o">&lt;&lt;</span> <span class="tok-n">endl</span><span class="tok-p">;</span>
+
+	<span class="tok-k">for</span> <span class="tok-p">(</span><span class="tok-kt">int</span> <span class="tok-n">i</span> <span class="tok-o">=</span> <span class="tok-mi">0</span><span class="tok-p">;</span> <span class="tok-n">i</span> <span class="tok-o">&lt;</span> <span class="tok-n">count</span><span class="tok-p">;</span> <span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span> <span class="tok-p">{</span>
+		<span class="tok-k">if</span> <span class="tok-p">(</span><span class="tok-n">i</span> <span class="tok-o">%</span> <span class="tok-mi">3</span> <span class="tok-o">!=</span> <span class="tok-mi">0</span><span class="tok-p">)</span> <span class="tok-p">{</span> <span class="tok-c1">// to discard 2 of each 3 frames</span>
+			<span class="tok-n">cap</span><span class="tok-p">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-n">image1</span><span class="tok-p">);</span>
+			<span class="tok-k">continue</span><span class="tok-p">;</span>
+		<span class="tok-p">}</span>
+		<span class="tok-n">cap</span><span class="tok-p">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-n">image1</span><span class="tok-p">);</span> <span class="tok-c1">// reads frame</span>
+		<span class="tok-k">if</span> <span class="tok-p">(</span><span class="tok-n">image1</span><span class="tok-p">.</span><span class="tok-n">empty</span><span class="tok-p">())</span>
+			<span class="tok-k">continue</span><span class="tok-p">;</span>
+		<span class="tok-n">filter2D</span><span class="tok-p">(</span><span class="tok-n">image1</span><span class="tok-p">,</span> <span class="tok-n">image2</span><span class="tok-p">,</span> <span class="tok-mi">0</span><span class="tok-p">,</span> <span class="tok-n">mask</span><span class="tok-p">);</span> <span class="tok-c1">// creates blurred copy</span>
+		<span class="tok-n">DoAllTheStuff</span><span class="tok-p">();</span> <span class="tok-c1">// tilt-shifts</span>
+		<span class="tok-n">out</span> <span class="tok-o">&lt;&lt;</span> <span class="tok-n">blended</span><span class="tok-p">;</span> <span class="tok-c1">// writes output</span>
+						<span class="tok-c1">//if(waitKey(30) &gt;= 0) break;</span>
+	<span class="tok-p">}</span>
+
+	<span class="tok-k">return</span> <span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Resultado:
+video::images/depois_nai.avi[]</p>
+</div>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-09-11 00:13:19 BRT
+Last updated 2017-09-11 22:34:54 BRT
 </div>
 </div>
 </body>
